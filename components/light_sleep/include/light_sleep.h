@@ -25,7 +25,7 @@ extern "C"
 {
 #endif
 
-    esp_err_t esp_zb_power_save_init(int cpu_freq);
+    esp_err_t esp_zb_power_save_init(void);
     void sleep_enable();
     void sleep_configure();
 

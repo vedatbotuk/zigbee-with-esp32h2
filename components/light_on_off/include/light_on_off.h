@@ -28,8 +28,8 @@ extern "C"
 #define LIGHT_DEFAULT_ON 1
 #define LIGHT_DEFAULT_OFF 0
 
-#define GPIO_OUTPUT_PIN 12                            // Beispiel-Pin, an dem eine LED angeschlossen ist (GPIO 2)
-#define GPIO_OUTPUT_PIN_SEL (1ULL << GPIO_OUTPUT_PIN) // Bitmaske für den Pin
+#define GPIO_OUTPUT_PIN 12
+#define GPIO_OUTPUT_PIN_SEL (1ULL << GPIO_OUTPUT_PIN) // Bitmas for pin
 
   /**
    * @brief Set light power (on/off).
@@ -39,7 +39,7 @@ extern "C"
   void light_driver_set_power(bool power);
 
   /**
-   * @brief color light driver init, be invoked where you want to use color light
+   * @brief light driver init, be invoked where you want to use light
    *
    * @param power power on/off
    */

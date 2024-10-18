@@ -27,12 +27,14 @@ void light_driver_set_power(bool power)
 void light_driver_init(bool power)
 {
   // GPIO configuration for an output
-  gpio_config_t io_conf;
-  io_conf.intr_type = GPIO_INTR_DISABLE;      // No interrupts for the pin
-  io_conf.mode = GPIO_MODE_OUTPUT;            // Set pin as output
-  io_conf.pin_bit_mask = GPIO_OUTPUT_PIN_SEL; // Configure the desired pin
-  // TODO: Pull-Down or Pull-Up
-  io_conf.pull_down_en = 1; // Enable pull-down
-  io_conf.pull_up_en = 0;   // Disable pull-up
-  gpio_config(&io_conf);    // Apply the configuration
+  gpio_config_t io_conf = {
+      .intr_type = GPIO_INTR_DISABLE,       // No interrupts for the pin
+      .mode = GPIO_MODE_OUTPUT,             // Set pin as output
+      .pin_bit_mask = GPIO_OUTPUT_PIN_SEL,  // Configure the desired pin
+      .pull_down_en = GPIO_PULLDOWN_ENABLE, // Enable pull-down
+      .pull_up_en = GPIO_PULLUP_DISABLE     // Disable pull-up
+  };
+
+  gpio_config(&io_conf);               // Apply the configuration
+  gpio_sleep_sel_dis(GPIO_OUTPUT_PIN); // Disable sleep select
 }

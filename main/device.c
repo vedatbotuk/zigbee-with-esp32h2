@@ -172,7 +172,7 @@ static void esp_zb_task(void *pvParameters)
 #endif
     esp_zb_set_primary_network_channel_set(ESP_ZB_PRIMARY_CHANNEL_MASK);
     ESP_ERROR_CHECK(esp_zb_start(false));
-    esp_zb_main_loop_iteration();
+    esp_zb_stack_main_loop();
 }
 
 #if defined AUTOMATIC_IRRIGATION || defined LIGHT_ON_OFF
@@ -194,7 +194,7 @@ void app_main(void)
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_ERROR_CHECK(esp_zb_platform_config(&config));
 #ifdef LIGHT_SLEEP
-    ESP_ERROR_CHECK(esp_zb_power_save_init(CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ));
+    ESP_ERROR_CHECK(esp_zb_power_save_init());
 #endif
 #ifdef LIGHT_ON_OFF
     ESP_LOGI(TAG_SIGNAL_HANDLER, "Deferred driver initialization %s", deferred_driver_init() ? "failed" : "successful");
