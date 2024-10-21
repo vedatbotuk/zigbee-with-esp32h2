@@ -24,7 +24,7 @@ void light_driver_set_power(bool power)
   gpio_set_level(GPIO_OUTPUT_PIN, power ? 1 : 0);
 }
 
-void light_driver_init(bool power)
+esp_err_t light_driver_init(bool power)
 {
   // GPIO configuration for an output
   gpio_config_t io_conf = {
@@ -37,4 +37,5 @@ void light_driver_init(bool power)
 
   gpio_config(&io_conf);               // Apply the configuration
   gpio_sleep_sel_dis(GPIO_OUTPUT_PIN); // Disable sleep select
+  return ESP_OK;
 }

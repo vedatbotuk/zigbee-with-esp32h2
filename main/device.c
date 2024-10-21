@@ -23,8 +23,6 @@
 #include "update_cluster.h"
 #include "create_cluster.h"
 #include "signal_handler.h"
-// #include "pump_switch.h"
-#include "light_on_off.h"
 
 #ifdef OTA_UPDATE
 #include "ota.h"
@@ -34,14 +32,86 @@
 #include "light_sleep.h"
 #endif
 
+#ifdef BATTERY
+#include "battery_read.h"
+#endif
+
+#ifdef SENSOR_WATERLEAK
+#include "waterleak.h"
+#endif
+
+#if defined SENSOR_TEMPERATURE || defined SENSOR_HUMIDITY
+#include "temperature_humidity.h"
+#endif
+
+#if defined AUTOMATIC_IRRIGATION || defined LIGHT_ON_OFF
+#include "light_on_off.h"
+#endif
+
 static char firmware_version[16] = {7, 'v', 'e', 'r', '0', '.', '1', '8'};
 static const char *TAG = "DEVICE";
+
+bool connected = false;
 
 /********************* Define functions **************************/
 void esp_zb_app_signal_handler(esp_zb_app_signal_t *signal_struct)
 {
     create_signal_handler(*signal_struct);
 }
+
+#if defined SENSOR_TEMPERATURE || defined SENSOR_HUMIDITY
+void measure_temp_hum()
+{
+    /* Measure temperature loop*/
+    while (1)
+    {
+        connected = connection_status();
+        if (connected)
+        {
+#ifdef SENSOR_TEMPERATURE
+            check_temperature();
+#endif
+#ifdef SENSOR_HUMIDITY
+            check_humidity();
+#endif
+        }
+        else
+        {
+            ESP_LOGI(TAG, "Device is not connected! Could not measure the temperature and humidity");
+        }
+        vTaskDelay(pdMS_TO_TICKS(5000));
+    }
+}
+#endif
+
+#ifdef BATTERY
+void measure_battery()
+{
+    /* Measure battery loop*/
+    while (1)
+    {
+        connected = connection_status();
+        if (connected)
+        {
+            voltage_calculate_init();
+            get_battery_level();
+            voltage_calculate_deinit();
+        }
+        else
+        {
+            ESP_LOGI(TAG, "Device is not connected! Could not measure the battery level");
+        }
+        vTaskDelay(pdMS_TO_TICKS(60000));
+    }
+}
+#endif
+
+#ifdef SENSOR_WATERLEAK
+// TODO
+// Button callback function for waterleak
+// vTaskDelay(pdMS_TO_TICKS(100)); /*This sleep is necessary for the get_button()*/
+// check_waterleak();
+#endif
 
 #if defined AUTOMATIC_IRRIGATION || defined LIGHT_ON_OFF
 static esp_err_t zb_attribute_handler(const esp_zb_zcl_set_attr_value_message_t *message)
@@ -175,14 +245,6 @@ static void esp_zb_task(void *pvParameters)
     esp_zb_stack_main_loop();
 }
 
-#if defined AUTOMATIC_IRRIGATION || defined LIGHT_ON_OFF
-static esp_err_t deferred_driver_init(void)
-{
-    light_driver_init(LIGHT_DEFAULT_OFF);
-    return ESP_OK;
-}
-#endif
-
 void app_main(void)
 {
     ESP_LOGI(TAG, "--- Application Start ---");
@@ -197,7 +259,14 @@ void app_main(void)
     ESP_ERROR_CHECK(esp_zb_power_save_init());
 #endif
 #ifdef LIGHT_ON_OFF
-    ESP_LOGI(TAG_SIGNAL_HANDLER, "Deferred driver initialization %s", deferred_driver_init() ? "failed" : "successful");
+    // light_driver_init(LIGHT_DEFAULT_OFF);
+    ESP_LOGI(TAG, "Deferred driver initialization %s", light_driver_init(LIGHT_DEFAULT_OFF) ? "failed" : "successful");
 #endif
-    xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 5, NULL);
+#if defined SENSOR_TEMPERATURE || defined SENSOR_HUMIDITY
+    xTaskCreate(measure_temp_hum, "measure_temp_hum", configMINIMAL_STACK_SIZE * 3, NULL, 5, NULL);
+#endif
+#ifdef BATTERY
+    xTaskCreate(measure_battery, "measure_battery", configMINIMAL_STACK_SIZE * 3, NULL, 4, NULL);
+#endif
+    xTaskCreate(esp_zb_task, "Zigbee_main", 4096, NULL, 6, NULL);
 }

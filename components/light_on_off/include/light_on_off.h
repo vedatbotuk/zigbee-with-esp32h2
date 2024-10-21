@@ -18,6 +18,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <esp_err.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -43,7 +44,7 @@ extern "C"
    *
    * @param power power on/off
    */
-  void light_driver_init(bool power);
+  esp_err_t light_driver_init(bool power);
 
 #ifdef __cplusplus
 } // extern "C"

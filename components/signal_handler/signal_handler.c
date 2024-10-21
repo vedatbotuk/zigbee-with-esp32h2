@@ -21,29 +21,12 @@
 #ifdef DEEP_SLEEP
 #include "deep_sleep.h"
 #endif
-#ifdef BATTERY
-#include "battery_read.h"
-#endif
-#ifdef SENSOR_WATERLEAK
-#include "waterleak.h"
-#endif
-#if defined SENSOR_TEMPERATURE || defined SENSOR_HUMIDITY
-#include "temperature_humidity.h"
-#endif
-#if defined AUTOMATIC_IRRIGATION || defined LIGHT_ON_OFF
-#include "light_on_off.h"
-#endif
 
 const char *TAG_SIGNAL_HANDLER = "SIGNAL";
 bool conn = false;
 
 #ifdef MIX_SLEEP
 uint8_t deepsleep_cnt = 0;
-#endif
-
-#ifdef BATTERY
-uint8_t battery_level;
-uint8_t battery_voltage;
 #endif
 
 void bdb_start_top_level_commissioning_cb(uint8_t mode_mask)
@@ -55,15 +38,6 @@ bool connection_status()
 {
     return conn;
 }
-
-#ifdef BATTERY
-esp_err_t get_battery_data(uint8_t *battlev, uint8_t *volcal)
-{
-    *battlev = battery_level;
-    *volcal = battery_voltage;
-    return ESP_OK;
-}
-#endif
 
 #ifdef MIX_SLEEP
 void deep_sleep_check()
@@ -166,29 +140,6 @@ void create_signal_handler(esp_zb_app_signal_t signal_struct)
 #ifdef LIGHT_SLEEP
     case ESP_ZB_COMMON_SIGNAL_CAN_SLEEP:
         ESP_LOGI(TAG_SIGNAL_HANDLER, "Zigbee can sleep");
-        if (conn == true)
-        {
-#ifdef SENSOR_TEMPERATURE
-            check_temperature();
-#endif
-#ifdef SENSOR_HUMIDITY
-            check_humidity();
-#endif
-
-#ifdef BATTERY
-            voltage_calculate_init();
-            get_battery_level();
-            voltage_calculate_deinit();
-#endif
-#ifdef SENSOR_WATERLEAK
-            vTaskDelay(pdMS_TO_TICKS(100)); /*This sleep is necessary for the get_button()*/
-            check_waterleak();
-#endif
-        }
-        else
-        {
-            ESP_LOGI(TAG_SIGNAL_HANDLER, "Device is not connected!");
-        }
         esp_zb_sleep_now();
         break;
 #ifdef ROUTER_DEVICE
